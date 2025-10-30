@@ -193,17 +193,17 @@ class CommandExecutor:
 def execute_command(command: str, on_output: Callable[[str, str], None] = None, timeout: int = None) -> Dict[str, Any]:
     """
     Execute a shell command with optional streaming and tool-specific behavior.
-    
+
     Args:
         command: The command to execute
         on_output: Optional callback function for streaming output (source, line)
         timeout: Optional timeout override (uses tool-specific timeout if not provided)
-        
+
     Returns:
         A dictionary containing the stdout, stderr, and return code
     """
     from .tool_config import is_streaming_tool, is_blocked_tool, get_tool_timeout
-    
+
     # Parse the command to detect the tool
     command_parts = command.strip().split()
     if not command_parts:
@@ -214,9 +214,9 @@ def execute_command(command: str, on_output: Callable[[str, str], None] = None, 
             "stderr": "",
             "return_code": -1
         }
-    
+
     tool_name = command_parts[0]
-    
+
     # Check if the tool is blocked
     if is_blocked_tool(tool_name):
         logger.warning(f"Command '{tool_name}' is not allowed. Use the appropriate manager.")
@@ -228,22 +228,59 @@ def execute_command(command: str, on_output: Callable[[str, str], None] = None, 
             "return_code": -1,
             "blocked": True
         }
-    
+
     # Get tool-specific timeout if not provided
     if timeout is None:
         timeout = get_tool_timeout(tool_name)
-    
+
     # Check if the tool requires streaming
     requires_streaming = is_streaming_tool(tool_name)
-    
+
     # Create executor with appropriate timeout
     executor = CommandExecutor(command, timeout=timeout)
-    
+
     # If streaming callback is provided or tool requires streaming, enable streaming
     if on_output or requires_streaming:
         return executor.execute_with_streaming(on_output)
     else:
         return executor.execute()
+
+
+def execute_command_argv(argv: list, on_output: Callable[[str, str], None] = None, timeout: int = None) -> Dict[str, Any]:
+    """
+    Execute a command using argv list (safer than shell string for complex arguments).
+
+    Args:
+        argv: List of command arguments (e.g., ['nmap', '-sV', '192.168.1.1'])
+        on_output: Optional callback function for streaming output (source, line)
+        timeout: Optional timeout override
+
+    Returns:
+        A dictionary containing the stdout, stderr, and return code
+    """
+    import shlex
+
+    if not argv or len(argv) == 0:
+        return {
+            "success": False,
+            "error": "Empty argv provided",
+            "stdout": "",
+            "stderr": "",
+            "return_code": -1
+        }
+
+    # SECURITY FIX: Keep tool name unquoted so execute_command can properly detect blocked tools
+    # The tool name (argv[0]) must remain unquoted for security checks to work
+    # Only quote the arguments (argv[1:]) to handle special characters safely
+    tool_name = argv[0]
+    if len(argv) > 1:
+        quoted_args = ' '.join(shlex.quote(arg) for arg in argv[1:])
+        command = f"{tool_name} {quoted_args}"
+    else:
+        command = tool_name
+
+    # Use the existing execute_command function which will properly validate the tool name
+    return execute_command(command, on_output=on_output, timeout=timeout)
 
 
 def stream_command_execution(command: str, streaming: bool = False):

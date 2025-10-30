@@ -134,6 +134,18 @@ mcp-server/
 
 See [install.md](./install.md) for detailed installation instructions.
 
+### MCP Client Configuration
+
+After installation, configure your MCP client to connect to the Kali server:
+
+📖 **[Configuration Guide](./CONFIG.md)**
+
+This guide covers:
+- Setting up `.claude/mcp_settings.json` for Claude Desktop
+- Configuring alternative MCP clients
+- Finding your Python path and Kali IP address
+- Platform-specific examples (Windows, Linux, macOS)
+
 ### WSL Network Configuration
 
 If you're running Kali Linux in WSL 2, proper network configuration is **critical** for the MCP server to function. See our comprehensive guide:

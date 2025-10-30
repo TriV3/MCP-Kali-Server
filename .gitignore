@@ -211,9 +211,17 @@ config.json
 secrets.json
 .secrets
 
+# MCP Client configuration (user-specific)
+.claude/
+!.claude/*.example
+.mcp.json
+kali-mcp-config.json
+
 # MCP Server specific
 mcp-server/*.log
 kali-server/*.log
+PR_INSTRUCTIONS.md
+
 
 # Docker
 .dockerignore

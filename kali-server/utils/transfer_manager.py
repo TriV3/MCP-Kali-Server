@@ -456,14 +456,25 @@ class FileTransferManager:
     def _perform_direct_kali_upload(self, content: str, remote_path: str) -> Dict[str, Any]:
         """Perform the actual upload to Kali server file system."""
         try:
+            # SECURITY: Validate path to prevent directory traversal attacks
+            if '..' in remote_path or remote_path.startswith('/etc/') or remote_path.startswith('/sys/') or remote_path.startswith('/proc/'):
+                logger.warning(f"Blocked suspicious upload path: {remote_path}")
+                return {
+                    "success": False,
+                    "error": f"Invalid path: Directory traversal or system directory access not allowed"
+                }
+
+            # Resolve to absolute path to prevent symlink attacks
+            remote_path = os.path.abspath(remote_path)
+
             # Decode base64 content
             decoded_content = base64.b64decode(content)
-            
+
             # Ensure directory exists
             directory = os.path.dirname(remote_path)
             if directory:
                 os.makedirs(directory, exist_ok=True)
-            
+
             # Write file to Kali server
             with open(remote_path, 'wb') as f:
                 f.write(decoded_content)
@@ -488,10 +499,21 @@ class FileTransferManager:
     def _perform_direct_kali_download(self, file_path: str) -> Dict[str, Any]:
         """Perform the actual download from Kali server file system."""
         try:
+            # SECURITY: Validate path to prevent directory traversal attacks
+            if '..' in file_path or file_path.startswith('/etc/passwd') or file_path.startswith('/etc/shadow'):
+                logger.warning(f"Blocked suspicious download path: {file_path}")
+                return {
+                    "success": False,
+                    "error": f"Invalid path: Directory traversal or system file access not allowed"
+                }
+
+            # Resolve to absolute path to prevent symlink attacks
+            file_path = os.path.abspath(file_path)
+
             # Check if file exists
             if not os.path.exists(file_path):
                 return {"success": False, "error": f"File not found on Kali server: {file_path}"}
-            
+
             # Read file from Kali server
             with open(file_path, 'rb') as f:
                 file_content = f.read()
