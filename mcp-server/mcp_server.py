@@ -18,13 +18,13 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.StreamHandler(sys.stdout)
+        logging.StreamHandler(sys.stderr)
     ]
 )
 logger = logging.getLogger(__name__)
 
 # Default configuration
-DEFAULT_KALI_SERVER = "http://localhost:5000" # change to your linux IP
+DEFAULT_KALI_SERVER = "http://192.168.216.128:5000" # change to your linux IP
 DEFAULT_REQUEST_TIMEOUT = 300  # 5 minutes default timeout for API requests
 
 class KaliToolsClient:
@@ -349,6 +349,202 @@ def setup_mcp_server(kali_client: KaliToolsClient) -> FastMCP:
             "additional_args": additional_args
         }
         return kali_client.safe_post("api/tools/enum4linux", data)
+
+    @mcp.tool()
+    def tools_subfinder(target: str, additional_args: str = "") -> Dict[str, Any]:
+        """
+        Execute Subfinder for subdomain enumeration.
+
+        Args:
+            target: Domain to find subdomains for
+            additional_args: Additional Subfinder arguments
+
+        Returns:
+            Subdomain enumeration results
+        """
+        data = {
+            "target": target,
+            "additional_args": additional_args
+        }
+        return kali_client.safe_post("api/tools/subfinder", data)
+
+    @mcp.tool()
+    def tools_httpx(target: str, additional_args: str = "") -> Dict[str, Any]:
+        """
+        Execute httpx for HTTP probing.
+
+        Args:
+            target: Target URL or file with URLs
+            additional_args: Additional httpx arguments
+
+        Returns:
+            HTTP probing results
+        """
+        data = {
+            "target": target,
+            "additional_args": additional_args
+        }
+        return kali_client.safe_post("api/tools/httpx", data)
+
+    @mcp.tool()
+    def tools_nuclei(target: str, templates: str = "", severity: str = "", additional_args: str = "") -> Dict[str, Any]:
+        """
+        Execute Nuclei vulnerability scanner.
+
+        Args:
+            target: Target URL or file with URLs
+            templates: Template path(s) to use
+            severity: Severity filter (critical, high, medium, low)
+            additional_args: Additional Nuclei arguments
+
+        Returns:
+            Vulnerability scan results
+        """
+        data = {
+            "target": target,
+            "templates": templates,
+            "severity": severity,
+            "additional_args": additional_args
+        }
+        return kali_client.safe_post("api/tools/nuclei", data)
+
+    @mcp.tool()
+    def tools_arjun(url: str, method: str = "GET", additional_args: str = "") -> Dict[str, Any]:
+        """
+        Execute Arjun for parameter discovery.
+
+        Args:
+            url: Target URL
+            method: HTTP method (GET or POST)
+            additional_args: Additional Arjun arguments
+
+        Returns:
+            Parameter discovery results
+        """
+        data = {
+            "url": url,
+            "method": method,
+            "additional_args": additional_args
+        }
+        return kali_client.safe_post("api/tools/arjun", data)
+
+    @mcp.tool()
+    def tools_fierce(domain: str, additional_args: str = "") -> Dict[str, Any]:
+        """
+        Execute Fierce for DNS reconnaissance.
+
+        Args:
+            domain: Target domain
+            additional_args: Additional Fierce arguments
+
+        Returns:
+            DNS reconnaissance results
+        """
+        data = {
+            "domain": domain,
+            "additional_args": additional_args
+        }
+        return kali_client.safe_post("api/tools/fierce", data)
+
+    @mcp.tool()
+    def tools_byp4xx(url: str, method: str = "GET", additional_args: str = "") -> Dict[str, Any]:
+        """
+        Execute byp4xx for 403 bypass testing.
+
+        Args:
+            url: Target URL
+            method: HTTP method
+            additional_args: Additional byp4xx arguments
+
+        Returns:
+            403 bypass test results
+        """
+        data = {
+            "url": url,
+            "method": method,
+            "additional_args": additional_args
+        }
+        return kali_client.safe_post("api/tools/byp4xx", data)
+
+    @mcp.tool()
+    def tools_subzy(target: str, additional_args: str = "") -> Dict[str, Any]:
+        """
+        Execute Subzy for subdomain takeover detection.
+
+        Args:
+            target: Target domain or file with domains
+            additional_args: Additional Subzy arguments
+
+        Returns:
+            Subdomain takeover detection results
+        """
+        data = {
+            "target": target,
+            "additional_args": additional_args
+        }
+        return kali_client.safe_post("api/tools/subzy", data)
+
+    @mcp.tool()
+    def tools_assetfinder(domain: str, additional_args: str = "") -> Dict[str, Any]:
+        """
+        Execute Assetfinder for asset discovery.
+
+        Args:
+            domain: Target domain
+            additional_args: Additional Assetfinder arguments
+
+        Returns:
+            Asset discovery results
+        """
+        data = {
+            "domain": domain,
+            "additional_args": additional_args
+        }
+        return kali_client.safe_post("api/tools/assetfinder", data)
+
+    @mcp.tool()
+    def tools_waybackurls(domain: str, additional_args: str = "") -> Dict[str, Any]:
+        """
+        Execute waybackurls to fetch URLs from Wayback Machine.
+
+        Args:
+            domain: Target domain
+            additional_args: Additional waybackurls arguments
+
+        Returns:
+            Historical URLs from Wayback Machine
+        """
+        data = {
+            "domain": domain,
+            "additional_args": additional_args
+        }
+        return kali_client.safe_post("api/tools/waybackurls", data)
+
+    @mcp.tool()
+    def search_shodan(query: str, facets: list = [], fields: list = [], max_items: int = 5, page: int = 1, summarize: bool = False) -> Dict[str, Any]:
+        """
+        Search Shodan's database for devices and services.
+
+        Args:
+            query: Shodan search query (e.g., 'apache country:US')
+            facets: List of facets to include (e.g., ['country', 'org'])
+            fields: List of fields to include (e.g., ['ip_str', 'ports'])
+            max_items: Maximum items to return (default: 5)
+            page: Page number (default: 1)
+            summarize: Return summary instead of full data
+
+        Returns:
+            Shodan search results
+        """
+        data = {
+            "query": query,
+            "facets": facets,
+            "fields": fields,
+            "max_items": max_items,
+            "page": page,
+            "summarize": summarize
+        }
+        return kali_client.safe_post("api/tools/shodan", data)
 
     @mcp.tool()
     def health() -> Dict[str, Any]:

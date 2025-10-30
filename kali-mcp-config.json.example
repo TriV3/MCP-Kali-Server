@@ -1,0 +1,11 @@
+{
+  "command": "python",
+  "args": [
+    "/path/to/your/MCP-Kali-Server/mcp-server/mcp_server.py",
+    "--server",
+    "http://YOUR_KALI_IP:5000"
+  ],
+  "env": {
+    "KALI_SERVER_URL": "http://YOUR_KALI_IP:5000"
+  }
+}

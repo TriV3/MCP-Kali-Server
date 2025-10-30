@@ -13,10 +13,29 @@ from core.reverse_shell_manager import ReverseShellManager
 from core.command_executor import execute_command, stream_command_execution
 from tools.kali_tools import (
     run_nmap, run_gobuster, run_dirb, run_nikto, run_sqlmap,
-    run_metasploit, run_hydra, run_john, run_wpscan, run_enum4linux
+    run_metasploit, run_hydra, run_john, run_wpscan, run_enum4linux,
+    run_subfinder, run_httpx, run_searchsploit, run_nuclei, run_arjun, run_fierce,
+    run_subzy, run_assetfinder, run_waybackurls, run_shodan, run_byp4xx
 )
 from utils.kali_operations import upload_content, download_content
 
+
+
+
+def sse_response(generator):
+    """
+    Proper SSE content type + disable buffering so events flush immediately.
+    Use this for all streaming endpoints.
+    """
+    return Response(
+        stream_with_context(generator),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",  # avoids buffering on nginx/akamai/alb
+        },
+    )
 
 def setup_routes(app: Flask):
     """Setup all API routes for the Flask application."""
@@ -24,12 +43,30 @@ def setup_routes(app: Flask):
     # Health check
     @app.route("/health", methods=["GET"])
     def health():
-        """Health check endpoint."""
-        return jsonify({
-            "status": "healthy",
-            "message": "Kali Linux Tools API Server is running",
-            "version": VERSION
-        })
+        """Health check endpoint with tool availability status."""
+        try:
+            from shutil import which
+            tools = [
+                "nmap","gobuster","dirb","nikto","sqlmap","msfconsole","hydra",
+                "john","wpscan","enum4linux","subfinder","httpx","nuclei","arjun",
+                "fierce","subzy","assetfinder","waybackurls","byp4xx","ffuf"
+            ]
+            status = {}
+            go_bin = os.path.expanduser("~/go/bin")
+            for t in tools:
+                status[t] = bool(which(t) or os.path.exists(os.path.join(go_bin, t)))
+
+            all_ok = all(status.values())
+            return jsonify({
+                "status": "healthy",
+                "message": "Kali Linux Tools API Server is running",
+                "version": VERSION,
+                "all_essential_tools_available": all_ok,
+                "tools_status": status,
+            })
+        except Exception as e:
+            logger.error(f"Health check error: {e}")
+            return jsonify({"status": "degraded", "error": str(e), "version": VERSION}), 500
 
     # Network information
     @app.route("/api/system/network-info", methods=["GET"])
@@ -354,6 +391,76 @@ def setup_routes(app: Flask):
             logger.error(f"Error in enum4linux endpoint: {str(e)}")
             return jsonify({"error": f"Server error: {str(e)}"}), 500
 
+
+    @app.route("/api/tools/byp4xx", methods=["POST"])
+    def byp4xx():
+        try:
+            params = request.json or {}
+            result = run_byp4xx(params)
+            return jsonify(result)
+        except Exception as e:
+            logger.error(f"Error in byp4xx endpoint: {str(e)}")
+            return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+    @app.route("/api/tools/subfinder", methods=["POST"])
+    def subfinder():
+        try:
+            params = request.json or {}
+            result = run_subfinder(params)
+            return jsonify(result)
+        except Exception as e:
+            logger.error(f"Error in subfinder endpoint: {str(e)}")
+            return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+    @app.route("/api/tools/httpx", methods=["POST"])
+    def httpx():
+        try:
+            params = request.json or {}
+            result = run_httpx(params)
+            return jsonify(result)
+        except Exception as e:
+            logger.error(f"Error in httpx endpoint: {str(e)}")
+            return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+    @app.route("/api/tools/fierce", methods=["POST"])
+    def tools_fierce():
+        try:
+            params = request.json or {}
+            result = run_fierce(params)
+            return jsonify(result)
+        except Exception as e:
+            logger.error(f"Error in fierce endpoint: {str(e)}")
+            return jsonify({"error": f"Server error: {str(e)}"}), 500
+    @app.route("/api/tools/searchsploit", methods=["POST"])
+    def searchsploit():
+        try:
+            params = request.json or {}
+            result = run_searchsploit(params)
+            return jsonify(result)
+        except Exception as e:
+            logger.error(f"Error in searchsploit endpoint: {str(e)}")
+            return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+    @app.route("/api/tools/nuclei", methods=["POST"])
+    def nuclei():
+        try:
+            params = request.json or {}
+            result = run_nuclei(params)
+            return jsonify(result)
+        except Exception as e:
+            logger.error(f"Error in nuclei endpoint: {str(e)}")
+            return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+    @app.route("/api/tools/arjun", methods=["POST"])
+    def arjun():
+        try:
+            params = request.json or {}
+            result = run_arjun(params)
+            return jsonify(result)
+        except Exception as e:
+            logger.error(f"Error in arjun endpoint: {str(e)}")
+            return jsonify({"error": f"Server error: {str(e)}"}), 500
     # SSH session management
     @app.route("/api/ssh/session/start", methods=["POST"])
     def start_ssh_session():
@@ -914,4 +1021,41 @@ def setup_routes(app: Flask):
             logger.error(f"Error in download content from target: {str(e)}")
             return jsonify({"error": f"Server error: {str(e)}"}), 500
 
+
+    @app.route("/api/tools/waybackurls", methods=["POST"])
+    def waybackurls():
+        try:
+            params = request.json or {}
+            result = run_waybackurls(params)
+            return jsonify(result)
+        except Exception as e:
+            logger.error(f"Error in waybackurls endpoint: {str(e)}")
+            return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+    @app.route("/api/tools/shodan", methods=["POST"])
+    def shodan():
+        try:
+            params = request.json or {}
+            result = run_shodan(params)
+            return jsonify(result)
+        except Exception as e:
+            logger.error(f"Error in shodan endpoint: {str(e)}")
+            return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+    @app.route("/api/tools/subzy", methods=["POST"])
+    def subzy():
+        """Subzy subdomain takeover detection"""
+        from tools.kali_tools import run_subzy
+        data = request.get_json() or {}
+        result = run_subzy(data)
+        return jsonify(result)
+
+    @app.route("/api/tools/assetfinder", methods=["POST"])
+    def assetfinder():
+        """Assetfinder subdomain discovery"""
+        from tools.kali_tools import run_assetfinder
+        data = request.get_json() or {}
+        result = run_assetfinder(data)
+        return jsonify(result)
     return app
