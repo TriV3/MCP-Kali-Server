@@ -14,7 +14,7 @@ from core.command_executor import execute_command, stream_command_execution
 from tools.kali_tools import (
     run_nmap, run_gobuster, run_dirb, run_nikto, run_sqlmap,
     run_metasploit, run_hydra, run_john, run_wpscan, run_enum4linux,
-    run_403bypasser, run_subfinder, run_httpx, run_searchsploit, run_nuclei, run_arjun, run_fierce,
+    run_subfinder, run_httpx, run_searchsploit, run_nuclei, run_arjun, run_fierce,
     run_subzy, run_assetfinder, run_waybackurls, run_shodan, run_byp4xx
 )
 from utils.kali_operations import upload_content, download_content
@@ -49,7 +49,7 @@ def setup_routes(app: Flask):
             tools = [
                 "nmap","gobuster","dirb","nikto","sqlmap","msfconsole","hydra",
                 "john","wpscan","enum4linux","subfinder","httpx","nuclei","arjun",
-                "fierce","subzy","assetfinder","waybackurls","byp4xx","403bypasser","ffuf"
+                "fierce","subzy","assetfinder","waybackurls","byp4xx","ffuf"
             ]
             status = {}
             go_bin = os.path.expanduser("~/go/bin")
@@ -389,17 +389,6 @@ def setup_routes(app: Flask):
             return jsonify(result)
         except Exception as e:
             logger.error(f"Error in enum4linux endpoint: {str(e)}")
-            return jsonify({"error": f"Server error: {str(e)}"}), 500
-
-
-    @app.route("/api/tools/403bypasser", methods=["POST"])
-    def bypasser_403():
-        try:
-            params = request.json or {}
-            result = run_403bypasser(params)
-            return jsonify(result)
-        except Exception as e:
-            logger.error(f"Error in 403bypasser endpoint: {str(e)}")
             return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 
