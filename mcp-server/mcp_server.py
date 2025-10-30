@@ -24,7 +24,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Default configuration
-DEFAULT_KALI_SERVER = "http://localhost:5000" # change to your linux IP
+DEFAULT_KALI_SERVER = "http://192.168.216.128:5000" # change to your linux IP
 DEFAULT_REQUEST_TIMEOUT = 300  # 5 minutes default timeout for API requests
 
 class KaliToolsClient:
